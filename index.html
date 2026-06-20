@@ -627,6 +627,166 @@
         scroll-behavior: auto !important;
       }
     }
+
+/* ===== MOBILE OPTIMIZATION ===== */
+@media (max-width: 768px) {
+
+  .wrap {
+    width: calc(100% - 20px);
+    padding-top: 60px;
+    padding-bottom: 40px;
+  }
+
+  .hero h1 {
+    line-height: 1.05;
+    word-break: break-word;
+  }
+
+  .hero p,
+  .about-lead,
+  .section-head p {
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  .lookup-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .lookup-grid button {
+    width: 100%;
+  }
+
+  .result-card pre {
+    max-width: 100%;
+    overflow-x: auto;
+    font-size: 12px !important;
+  }
+
+  .cap-grid,
+  .stats-grid,
+  .fb-grid,
+  .health-row,
+  .usage-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .podium {
+    grid-template-columns: 1fr;
+  }
+
+  .rank-1 {
+    order: -1;
+  }
+
+  .usage-days {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 8px;
+    justify-content: flex-start;
+  }
+
+  .usage-days::-webkit-scrollbar {
+    display: none;
+  }
+
+  .usage-days button {
+    flex-shrink: 0;
+  }
+
+  .topnav {
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .topnav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .topnav a {
+    flex-shrink: 0;
+  }
+
+  .big-stat {
+    padding: 24px;
+  }
+
+  .big-stat-num {
+    font-size: clamp(2.4rem, 14vw, 4rem);
+  }
+
+  .ut-num {
+    font-size: clamp(3rem, 16vw, 5rem);
+  }
+
+  .about-feature {
+    grid-template-columns: 1fr;
+    text-align: left;
+  }
+
+  .feature-icon {
+    margin-bottom: 10px;
+  }
+
+  .fb-card {
+    padding: 20px;
+  }
+
+  footer {
+    text-align: center;
+    gap: 8px;
+  }
+}
+
+/* ===== EXTRA SMALL PHONES ===== */
+@media (max-width: 480px) {
+
+  .hero h1 {
+    font-size: clamp(2.4rem, 14vw, 3.8rem);
+  }
+
+  .about-h2,
+  .section-head h2 {
+    font-size: clamp(1.8rem, 10vw, 3rem);
+    line-height: 1.05;
+  }
+
+  .hero-badge,
+  .soon-tag,
+  .section-kicker {
+    font-size: 10px;
+    padding: 7px 12px;
+  }
+
+  .about-feature,
+  .webbot-panel,
+  .usage-total,
+  .big-stat,
+  .fb-card,
+  .cap-card {
+    padding: 18px;
+  }
+
+  .lookup-grid input,
+  .lookup-grid select,
+  .lookup-grid button {
+    min-height: 52px;
+  }
+
+  .avatar {
+    width: 64px;
+    height: 64px;
+  }
+
+  .rank-1 .avatar {
+    width: 82px;
+    height: 82px;
+  }
+}
+    
   </style>
 </head>
 <body>
