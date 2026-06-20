@@ -835,25 +835,40 @@
       let url = "";
 
       switch (select.value) {
-        case "Number lookup":
-          url = `https://osint-bronx-ultra-2-0.onrender.com/api/key-bronx/number?key=op&num=${encodeURIComponent(value)}`;
-          break;
-        case "Vehicle lookup":
-          url = `https://osint-bronx-ultra-2-0.onrender.com/api/key-bronx/aadhar?key=op&num=${encodeURIComponent(value)}`;
-          break;
-        case "Telegram lookup":
-          url = `https://tg-ifo-babu-0.vercel.app/tracex?key=BRONXop&username=${encodeURIComponent(value)}`;
-          break;
-        case "UPI lookup":
-          url = `https://osint-bronx-ultra-2-0.onrender.com/api/key-bronx/upi?key=op&upi=${encodeURIComponent(value)}`;
-          break;
-      }
+  case "Number lookup":
+    url = "/api/number";
+    break;
+
+  case "Vehicle lookup":
+    url = "/api/vehicle";
+    break;
+
+  case "Telegram lookup":
+    url = "/api/telegram";
+    break;
+
+  case "UPI lookup":
+    url = "/api/upi";
+    break;
+}
 
       result.innerHTML = `<div><span class="live-dot"></span>Searching...</div><p>Please wait...</p>`;
 
       try {
-        const response = await fetch(url);
-        const data = await response.json();
+        const response = await fetch(url, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    query: value
+  })
+});
+        if (!response.ok) {
+  throw new Error(`Server returned ${response.status}`);
+}
+
+const data = await response.json();
 
 let displayData = data;
 
@@ -874,10 +889,12 @@ function cleanObject(obj) {
   ]);
 
   for (const k of Object.keys(obj)) {
-    if (blocked.has(k)) {
-      delete obj[k];
-      continue;
-    }
+  const key = k.toLowerCase();
+
+  if (blocked.has(key)) {
+    delete obj[k];
+    continue;
+  }
 
     if (k === 'id') {
       obj.penchoid = obj[k];
