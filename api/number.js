@@ -13,17 +13,17 @@ export default async function handler(req, res) {
     });
   }
 
-  try {
-    // YOUR API CALL HERE
+ try {
+  const response = await fetch(
+    `https://osint-bronx-ultra-2-0.onrender.com/api/key-bronx/number?key=op&num=${encodeURIComponent(query)}`
+  );
 
-    return res.status(200).json({
-      success: true,
-      query,
-      message: "number endpoint working"
-    });
-  } catch (err) {
-    return res.status(500).json({
-      error: err.message
-    });
-  }
+  const data = await response.json();
+
+  return res.status(200).json(data);
+
+} catch (err) {
+  return res.status(500).json({
+    error: err.message
+  });
 }
