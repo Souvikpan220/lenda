@@ -1,0 +1,951 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Analysis UI Clone</title>
+  <meta name="description" content="Standalone frontend-only Analysis UI clone." />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg-0: #07060d;
+      --ink: #ece9ff;
+      --ink-dim: #a8a3c7;
+      --ink-mute: #706a92;
+      --accent: #9b5cff;
+      --accent-2: #5cc8ff;
+      --accent-3: #ff5ca8;
+      --green: #2ecf85;
+      --gold: #ffd166;
+      --line: rgba(255,255,255,.08);
+      --glass: rgba(255,255,255,.04);
+      --glass-strong: rgba(255,255,255,.075);
+      --mx: 50%;
+      --my: 35%;
+      --rx: 0deg;
+      --ry: 0deg;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background: var(--bg-0);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input, select { font: inherit; }
+    a { color: inherit; text-decoration: none; }
+    ::selection { background: rgba(155,92,255,.42); }
+
+    .scene {
+      position: fixed;
+      inset: 0;
+      z-index: -5;
+      overflow: hidden;
+      perspective: 1000px;
+      background:
+        radial-gradient(circle at var(--mx) var(--my), rgba(155,92,255,.22), transparent 18rem),
+        radial-gradient(circle at calc(100% - var(--mx)) 80%, rgba(92,200,255,.15), transparent 22rem),
+        linear-gradient(180deg, #07060d 0%, #0a0714 48%, #07060d 100%);
+    }
+    .scene::before,
+    .scene::after {
+      content: "";
+      position: absolute;
+      width: 52vw;
+      height: 52vw;
+      border-radius: 50%;
+      filter: blur(84px);
+      opacity: .66;
+      transform: translateZ(-160px) rotateX(var(--rx)) rotateY(var(--ry));
+      transition: transform .16s ease-out;
+      will-change: transform;
+    }
+    .scene::before {
+      left: -14vw;
+      top: -16vw;
+      background: radial-gradient(circle, rgba(155,92,255,.58), transparent 68%);
+      animation: drift 22s ease-in-out infinite alternate;
+    }
+    .scene::after {
+      right: -12vw;
+      bottom: -18vw;
+      background: radial-gradient(circle, rgba(92,200,255,.48), transparent 68%);
+      animation: drift 28s ease-in-out infinite alternate-reverse;
+    }
+    .grid-plane {
+      position: absolute;
+      inset: -20%;
+      background:
+        linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      transform: rotateX(62deg) rotateZ(-8deg) translateY(18vh);
+      transform-origin: center;
+      opacity: .34;
+      mask-image: linear-gradient(180deg, transparent 0%, #000 26%, transparent 92%);
+      animation: gridFloat 9s ease-in-out infinite alternate;
+    }
+    .orb {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-2), var(--accent-3));
+      box-shadow: 0 0 22px rgba(92,200,255,.9);
+      transform: translate3d(calc(var(--x) * 1vw), calc(var(--y) * 1vh), calc(var(--z) * 1px));
+      animation: orbFloat calc(5s + var(--d) * 1s) ease-in-out infinite alternate;
+      opacity: .62;
+    }
+    @keyframes drift {
+      from { transform: translate3d(0,0,0) scale(1) rotateX(var(--rx)) rotateY(var(--ry)); }
+      to { transform: translate3d(8vw,6vh,0) scale(1.12) rotateX(var(--rx)) rotateY(var(--ry)); }
+    }
+    @keyframes gridFloat {
+      from { transform: rotateX(62deg) rotateZ(-8deg) translateY(18vh) translateX(-1vw); }
+      to { transform: rotateX(62deg) rotateZ(-8deg) translateY(14vh) translateX(1vw); }
+    }
+    @keyframes orbFloat {
+      from { margin-top: -14px; filter: hue-rotate(0deg); }
+      to { margin-top: 22px; filter: hue-rotate(70deg); }
+    }
+
+    .wrap {
+      width: min(1100px, calc(100% - 36px));
+      margin: 0 auto;
+      padding: 88px 0 64px;
+    }
+    .bot-status-wrap { display: flex; justify-content: center; margin-bottom: 14px; }
+    .bot-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border: 1px solid rgba(46,207,133,.32);
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(46,207,133,.12), rgba(46,207,133,.04));
+      color: #a8efc7;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .live-dot, .bs-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--green);
+      box-shadow: 0 0 10px rgba(46,207,133,.78);
+      animation: livePulse 1.6s ease-in-out infinite;
+    }
+    @keyframes livePulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: .58; transform: scale(.84); }
+    }
+
+    .topnav {
+      position: sticky;
+      top: 14px;
+      z-index: 30;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 42px;
+    }
+    .topnav a {
+      position: relative;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 0 22px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.04);
+      color: var(--ink-dim);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .06em;
+      backdrop-filter: blur(18px);
+      transition: transform .24s ease, color .24s ease, border-color .24s ease;
+    }
+    .topnav a::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(155,92,255,.18), rgba(92,200,255,.16));
+      opacity: 0;
+      transition: opacity .24s ease;
+    }
+    .topnav a span { position: relative; }
+    .topnav a:hover { color: #fff; border-color: rgba(155,92,255,.46); transform: translateY(-1px); }
+    .topnav a:hover::before { opacity: 1; }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(26px) scale(.985);
+      filter: blur(10px);
+      transition: opacity .75s cubic-bezier(.2,.8,.2,1), transform .75s cubic-bezier(.2,.8,.2,1), filter .75s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+    }
+
+    .hero { margin: 0 auto 86px; text-align: center; }
+    .hero-badge, .soon-tag, .section-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(155,92,255,.35);
+      border-radius: 999px;
+      background: rgba(155,92,255,.12);
+      color: #c9bfff;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      padding: 8px 16px;
+    }
+    .hero-badge span {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--accent-2);
+      box-shadow: 0 0 12px rgba(92,200,255,.8);
+    }
+    .hero h1 {
+      margin: 24px 0 20px;
+      font-size: clamp(3.4rem, 9vw, 7.8rem);
+      line-height: .9;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+    .hero em, .about-h2 em {
+      font-style: normal;
+      background: linear-gradient(120deg, #fff, #c9bfff 35%, #9adcff 70%, #ffb0d2);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .hero p {
+      max-width: 720px;
+      margin: 0 auto;
+      color: var(--ink-dim);
+      font-size: clamp(1rem, 2vw, 1.18rem);
+      line-height: 1.85;
+    }
+
+    section { scroll-margin-top: 100px; }
+    .about-section, .section-block { margin-top: 80px; }
+    .about-eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+      color: var(--ink-dim);
+      font-weight: 800;
+      letter-spacing: .06em;
+    }
+    .pill {
+      display: inline-grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff;
+      font-size: 13px;
+    }
+    .pill.cyan { background: linear-gradient(135deg, var(--accent-2), var(--green)); }
+    .about-h2, .section-head h2 {
+      margin: 0;
+      max-width: 840px;
+      font-size: clamp(2rem, 5vw, 4.8rem);
+      line-height: .98;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+    .about-lead, .section-head p {
+      max-width: 790px;
+      color: var(--ink-dim);
+      font-size: 1.02rem;
+      line-height: 1.85;
+    }
+
+    .depth-card, .cap-card, .big-stat, .result-card, .podium-card, .type-cell, .fb-card, .health-row > div {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: linear-gradient(160deg, var(--glass-strong), var(--glass));
+      box-shadow: 0 24px 70px -38px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.06);
+      backdrop-filter: blur(16px) saturate(140%);
+      transform-style: preserve-3d;
+      transition: transform .2s ease, border-color .24s ease, box-shadow .24s ease;
+    }
+    .tilt:hover {
+      border-color: rgba(155,92,255,.36);
+      box-shadow: 0 30px 80px -34px rgba(155,92,255,.55), inset 0 1px 0 rgba(255,255,255,.08);
+    }
+    .depth-card::before, .cap-card::before, .big-stat::before, .fb-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(120% 90% at var(--hx, 0%) var(--hy, 0%), rgba(155,92,255,.18), transparent 58%);
+    }
+    .about-feature, .webbot-panel, .usage-total { margin-top: 30px; padding: 30px; }
+    .about-feature {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 24px;
+      color: var(--ink-dim);
+      line-height: 1.75;
+    }
+    .about-feature p { position: relative; margin: 0; }
+    .about-feature p + p { margin-top: 12px; }
+    .feature-icon {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 58px;
+      height: 58px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(155,92,255,.22), rgba(92,200,255,.14));
+      color: #fff;
+      font-size: 24px;
+    }
+
+    .cap-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 28px;
+    }
+    .cap-card { padding: 22px; }
+    .cap-card .icon { position: relative; color: var(--accent-2); font-size: 24px; }
+    .cap-card h3 { position: relative; margin: 18px 0 8px; font-size: 1rem; }
+    .cap-card p { position: relative; margin: 0; color: var(--ink-dim); font-size: .9rem; line-height: 1.65; }
+
+    .section-head { display: grid; gap: 16px; justify-items: start; }
+    .webbot-panel { text-align: center; }
+    .webbot-panel h3 { position: relative; margin: 14px 0 8px; font-size: clamp(1.4rem, 3vw, 1.9rem); }
+    .webbot-panel p { position: relative; max-width: 620px; margin: 0 auto; color: var(--ink-dim); line-height: 1.7; }
+    .lookup-grid {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(180px,.8fr) 1.4fr auto;
+      gap: 12px;
+      margin-top: 28px;
+      text-align: left;
+    }
+    .lookup-grid label {
+      display: grid;
+      gap: 8px;
+      color: var(--ink-dim);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .lookup-grid input, .lookup-grid select {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 12px;
+      background: rgba(7,6,13,.72);
+      color: var(--ink);
+      outline: 0;
+      padding: 0 14px;
+    }
+    .lookup-grid button {
+      align-self: end;
+      min-height: 48px;
+      padding: 0 20px;
+      border: 0;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 16px 36px -18px rgba(92,200,255,.8);
+    }
+    .result-card { display: grid; gap: 8px; margin-top: 18px; padding: 18px; text-align: left; }
+    .result-card div {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #a8efc7;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .result-card p { margin: 0; color: var(--ink-dim); }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 32px;
+    }
+    .big-stat { padding: 34px 30px; }
+    .big-stat.green::before { background: radial-gradient(120% 90% at var(--hx, 100%) var(--hy, 0%), rgba(46,207,133,.18), transparent 58%); }
+    .big-stat.cyan::before { background: radial-gradient(120% 90% at var(--hx, 0%) var(--hy, 0%), rgba(92,200,255,.18), transparent 58%); }
+    .big-stat.pink::before { background: radial-gradient(120% 90% at var(--hx, 0%) var(--hy, 0%), rgba(255,92,168,.17), transparent 58%); }
+    .big-stat-head {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      color: var(--ink-mute);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+    .big-stat-num {
+      position: relative;
+      font-size: clamp(2.8rem, 7vw, 5rem);
+      line-height: 1;
+      font-weight: 900;
+      background: linear-gradient(135deg, #fff, #c9bfff 50%, #9adcff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .big-stat p { position: relative; margin: 12px 0 0; color: var(--ink-dim); font-size: .9rem; }
+    .health-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+    .health-row > div { display: flex; align-items: center; gap: 10px; padding: 18px; color: var(--ink-dim); }
+    .health-row strong { margin-left: auto; color: #fff; }
+
+    .usage-meta, .fb-stats { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+    .usage-meta span, .fb-stats span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 15px;
+      border: 1px solid rgba(92,200,255,.26);
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(92,200,255,.13), rgba(155,92,255,.08));
+      color: #9adcff;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .usage-days { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin: 28px 0; }
+    .usage-days button {
+      display: grid;
+      gap: 2px;
+      min-width: 82px;
+      padding: 9px 13px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--glass);
+      color: var(--ink-dim);
+      cursor: pointer;
+    }
+    .usage-days button span { font-size: 10px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+    .usage-days button strong { color: var(--ink); }
+    .usage-days .active { border-color: rgba(46,207,133,.52); background: linear-gradient(135deg, rgba(46,207,133,.18), rgba(92,200,255,.08)); }
+    .usage-total { max-width: 520px; margin-left: auto; margin-right: auto; text-align: center; }
+    .ut-head {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--ink-mute);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+    .ut-num {
+      position: relative;
+      margin-top: 8px;
+      font-size: clamp(3.8rem, 9vw, 6rem);
+      line-height: 1;
+      font-weight: 900;
+      background: linear-gradient(135deg, #fff, #a8efc7 52%, #5cc8ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .usage-total p { position: relative; margin: 10px 0 0; color: var(--ink-dim); }
+    .usage-layout { display: grid; grid-template-columns: 1.1fr .9fr; gap: 22px; margin-top: 46px; }
+    .mini-title {
+      margin: 0 0 16px;
+      color: var(--ink-mute);
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+    .podium { display: grid; grid-template-columns: 1fr 1.12fr 1fr; gap: 14px; align-items: end; }
+    .podium-card { padding: 22px 16px; text-align: center; }
+    .rank-1 { padding-top: 34px; border-color: rgba(255,209,102,.42); background: linear-gradient(170deg, rgba(255,209,102,.17), rgba(255,138,92,.05)); }
+    .rank-2 { border-color: rgba(201,191,255,.28); }
+    .rank-3 { border-color: rgba(255,138,92,.28); }
+    .medal {
+      display: inline-grid;
+      place-items: center;
+      min-width: 38px;
+      height: 30px;
+      padding: 0 9px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .rank-1 .medal { background: linear-gradient(135deg, #ffd166, #ff8a5c); color: #120e26; }
+    .avatar {
+      display: grid;
+      place-items: center;
+      width: 76px;
+      height: 76px;
+      margin: 16px auto 12px;
+      border: 2px solid rgba(255,255,255,.12);
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(155,92,255,.38), rgba(92,200,255,.16));
+      font-size: 1.55rem;
+      font-weight: 900;
+    }
+    .rank-1 .avatar {
+      width: 96px;
+      height: 96px;
+      border-color: rgba(255,209,102,.72);
+      box-shadow: 0 0 0 4px rgba(255,209,102,.14), 0 22px 46px -26px rgba(255,180,80,.8);
+    }
+    .podium-card h4, .podium-card p { margin: 0; }
+    .podium-card p { margin-top: 7px; color: var(--ink-dim); font-size: .86rem; }
+    .type-grid { display: grid; gap: 12px; }
+    .type-cell { padding: 16px; }
+    .type-cell div { display: flex; justify-content: space-between; gap: 14px; color: var(--ink-dim); font-size: .92rem; }
+    .type-cell strong { color: #fff; }
+    .type-cell i {
+      display: block;
+      height: 6px;
+      margin-top: 12px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--green));
+      box-shadow: 0 0 18px rgba(92,200,255,.3);
+    }
+
+    .fb-stats { margin-bottom: 24px; }
+    .fb-stats strong { color: #fff; }
+    .fb-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .fb-card { display: flex; flex-direction: column; gap: 18px; padding: 24px; }
+    .fb-card::after {
+      content: "\"";
+      position: absolute;
+      top: -28px;
+      right: 16px;
+      font-size: 132px;
+      line-height: 1;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      opacity: .22;
+    }
+    .fb-head { position: relative; z-index: 1; display: flex; align-items: center; gap: 12px; }
+    .fb-avatar {
+      display: grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      border: 2px solid rgba(255,255,255,.08);
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: var(--bg-0);
+      font-weight: 900;
+    }
+    .fb-head h3, .fb-head p, .fb-card blockquote { margin: 0; }
+    .fb-head h3 { font-size: 1rem; }
+    .fb-head p { color: var(--ink-mute); font-size: .84rem; }
+    .fb-card blockquote { position: relative; z-index: 1; color: var(--ink-dim); line-height: 1.75; }
+
+    footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 72px;
+      padding-top: 28px;
+      border-top: 1px solid var(--line);
+      color: var(--ink-mute);
+      font-size: .9rem;
+    }
+    footer a { color: var(--accent-2); font-weight: 800; }
+
+    @media (max-width: 900px) {
+      .wrap { width: min(100% - 28px, 760px); padding-top: 76px; }
+      .topnav {
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding: 4px 16px 12px;
+        margin-left: -16px;
+        margin-right: -16px;
+        mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
+      }
+      .topnav::-webkit-scrollbar { display: none; }
+      .cap-grid, .stats-grid, .usage-layout, .fb-grid, .lookup-grid, .health-row { grid-template-columns: 1fr; }
+      .podium { grid-template-columns: 1fr; }
+      .rank-1 { order: -1; }
+      .about-feature { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .hero { margin-bottom: 64px; }
+      .hero h1 { font-size: clamp(3rem, 18vw, 4.6rem); }
+      .about-section, .section-block { margin-top: 62px; }
+      .about-feature, .webbot-panel, .usage-total, .big-stat, .fb-card { padding: 22px; }
+      .usage-days { justify-content: flex-start; }
+      .usage-days button { min-width: 74px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .001ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="scene" aria-hidden="true">
+    <div class="grid-plane"></div>
+    <span class="orb" style="--x:16;--y:22;--z:90;--d:1"></span>
+    <span class="orb" style="--x:82;--y:18;--z:140;--d:2"></span>
+    <span class="orb" style="--x:62;--y:52;--z:80;--d:4"></span>
+    <span class="orb" style="--x:28;--y:76;--z:160;--d:3"></span>
+    <span class="orb" style="--x:88;--y:72;--z:110;--d:5"></span>
+  </div>
+
+  <main class="wrap">
+    <div class="bot-status-wrap reveal">
+      <div class="bot-status"><span class="bs-dot"></span><span>Bot online</span><span>99.98%</span></div>
+    </div>
+
+    <nav class="topnav reveal" aria-label="Sections">
+      <a href="#about"><span>About</span></a>
+      <a href="#use-bot"><span>Use Bot</span></a>
+      <a href="#bot-stats"><span>Bot Stats</span></a>
+      <a href="#usage"><span>Usage</span></a>
+      <a href="#feedbacks"><span>Feedbacks</span></a>
+    </nav>
+
+    <section class="hero reveal" id="about">
+      <div class="hero-badge"><span></span>#1 free osint on discord</div>
+      <h1>Open intelligence,<br><em>open to everyone.</em></h1>
+      <p>Analysis is a Discord community and free OSINT bot built to make fast public-source lookups available without paywalls, gatekeeping, or noisy workflows.</p>
+    </section>
+
+    <section class="about-section reveal">
+      <div class="about-eyebrow"><span class="pill">01</span><span>The Concept</span></div>
+      <h2 class="about-h2">What is <em>OSINT</em>?</h2>
+      <p class="about-lead">OSINT stands for Open-Source Intelligence: collecting and connecting publicly available information from leaks, profiles, records, metadata, search engines, and other open sources.</p>
+      <div class="about-feature depth-card tilt">
+        <div class="feature-icon">⌕</div>
+        <div>
+          <p>It is the same practice used by journalists, cybersecurity teams, recruiters, moderators, and everyday people who need to verify what is visible in public data.</p>
+          <p>The data is scattered everywhere. Analysis focuses on connecting the dots quickly.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="about-section reveal">
+      <div class="about-eyebrow"><span class="pill cyan">02</span><span>The Bot</span></div>
+      <h2 class="about-h2">One bot, <em>40+ live lookups.</em></h2>
+      <div class="cap-grid">
+        <article class="cap-card tilt"><div class="icon">☎</div><h3>Number Lookup</h3><p>Trace carrier, region, linked leaks, and public signals from phone numbers.</p></article>
+        <article class="cap-card tilt"><div class="icon">▣</div><h3>Vehicle Intel</h3><p>Query plates and registration hints with fast formatted returns.</p></article>
+        <article class="cap-card tilt"><div class="icon">@</div><h3>Email Search</h3><p>Connect email addresses to public breach, profile, and domain context.</p></article>
+        <article class="cap-card tilt"><div class="icon">◆</div><h3>Identity Signals</h3><p>UPI, Telegram, Aadhaar-style identifiers, IFSC, IMEI, GST, and more.</p></article>
+      </div>
+    </section>
+
+    <section class="section-block reveal" id="use-bot">
+      <div class="section-head">
+        <div class="section-kicker">Use Bot</div>
+        <h2>A clean lookup console without the login gate.</h2>
+        <p>This is frontend-only. The form is ready for your future lookup logic, with no server functions, API calls, Discord auth, or backend behavior included.</p>
+      </div>
+      <div class="webbot-panel depth-card tilt">
+        <div class="soon-tag">web bot preview</div>
+        <h3>Run an OSINT lookup</h3>
+        <p>Choose a lookup type, enter a public identifier, and later connect this form to your own logic.</p>
+        <form class="lookup-grid" onsubmit="event.preventDefault(); showReady();">
+          <label><span>Lookup type</span><select><option>Number lookup</option><option>Vehicle lookup</option><option>Telegram lookup</option><option>UPI lookup</option></select></label>
+          <label><span>Query</span><input id="lookupInput" placeholder="+91 98765 43210"></label>
+          <button type="submit">Search</button>
+        </form>
+        <div class="result-card" id="resultCard">
+          <div><span class="live-dot"></span>Ready</div>
+          <p>Results will appear here after you add your lookup logic.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-block reveal" id="bot-stats">
+      <div class="section-head">
+        <div class="section-kicker">Bot Stats</div>
+        <h2>Live-style counters and health cards.</h2>
+        <p>Large gradient numbers, glass cards, and compact status chips mirror the target stats view.</p>
+      </div>
+      <div class="stats-grid">
+        <article class="big-stat violet tilt"><div class="big-stat-head">◌ Total Lookups</div><div class="big-stat-num">9,84,216</div><p>served by Analysis bot</p></article>
+        <article class="big-stat green tilt"><div class="big-stat-head">◌ Lookups Today</div><div class="big-stat-num">18,442</div><p>live since midnight IST</p></article>
+        <article class="big-stat cyan tilt"><div class="big-stat-head">◌ Lookup Types</div><div class="big-stat-num">40+</div><p>across 17 categories</p></article>
+        <article class="big-stat pink tilt"><div class="big-stat-head">◌ Avg Resolve</div><div class="big-stat-num">2.8s</div><p>for successful queries</p></article>
+      </div>
+      <div class="health-row">
+        <div class="tilt">API latency <strong>184ms</strong></div>
+        <div class="tilt">Uptime window <strong>24h</strong></div>
+        <div class="tilt">Members <strong>12,481</strong></div>
+      </div>
+    </section>
+
+    <section class="section-block reveal" id="usage">
+      <div class="section-head">
+        <div class="section-kicker">Usage</div>
+        <h2>Today's lookup activity.</h2>
+        <p>A static recreation of the usage dashboard with daily pills, a central total card, podium users, and lookup type distribution.</p>
+      </div>
+      <div class="usage-meta"><span>Today</span><span>Timezone IST</span><span>Live snapshot</span></div>
+      <div class="usage-days">
+        <button><span>Mon</span><strong>12k</strong></button><button><span>Tue</span><strong>12k</strong></button><button><span>Wed</span><strong>12k</strong></button>
+        <button><span>Thu</span><strong>12k</strong></button><button><span>Fri</span><strong>12k</strong></button><button class="active"><span>Today</span><strong>live</strong></button>
+      </div>
+      <div class="usage-total depth-card tilt"><div class="ut-head"><span class="live-dot"></span>Lookups today</div><div class="ut-num">18,442</div><p>in-progress, resets at midnight IST</p></div>
+      <div class="usage-layout">
+        <div>
+          <h3 class="mini-title">Top users</h3>
+          <div class="podium">
+            <article class="podium-card rank-2 tilt"><div class="medal">#2</div><div class="avatar">M</div><h4>marcotype</h4><p>2,184 lookups</p></article>
+            <article class="podium-card rank-1 tilt"><div class="medal">#1</div><div class="avatar">C</div><h4>consoleisrealistic</h4><p>3,902 lookups</p></article>
+            <article class="podium-card rank-3 tilt"><div class="medal">#3</div><div class="avatar">S</div><h4>spectral</h4><p>1,776 lookups</p></article>
+          </div>
+        </div>
+        <div>
+          <h3 class="mini-title">By type</h3>
+          <div class="type-grid">
+            <div class="type-cell tilt"><div><span>Number</span><strong>42%</strong></div><i style="width:42%"></i></div>
+            <div class="type-cell tilt"><div><span>Vehicle</span><strong>21%</strong></div><i style="width:21%"></i></div>
+            <div class="type-cell tilt"><div><span>Telegram</span><strong>14%</strong></div><i style="width:14%"></i></div>
+            <div class="type-cell tilt"><div><span>UPI</span><strong>9%</strong></div><i style="width:9%"></i></div>
+            <div class="type-cell tilt"><div><span>Email</span><strong>8%</strong></div><i style="width:8%"></i></div>
+            <div class="type-cell tilt"><div><span>Weather</span><strong>6%</strong></div><i style="width:6%"></i></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-block reveal" id="feedbacks">
+      <div class="section-head">
+        <div class="section-kicker">Feedbacks</div>
+        <h2>What the community says.</h2>
+        <p>Quote-style cards with avatars, soft borders, and holographic highlights match the feedbacks section.</p>
+      </div>
+      <div class="fb-stats"><span><strong>4.9</strong> average rating</span><span><strong>1,200+</strong> public messages</span><span><strong>Free</strong> forever</span></div>
+      <div class="fb-grid">
+        <article class="fb-card tilt"><div class="fb-head"><div class="fb-avatar">A</div><div><h3>Aaryan</h3><p>Threat researcher</p></div></div><blockquote>Analysis feels like the first OSINT Discord tool that is fast without feeling locked behind a private club.</blockquote></article>
+        <article class="fb-card tilt"><div class="fb-head"><div class="fb-avatar">R</div><div><h3>Ritika</h3><p>Community member</p></div></div><blockquote>The bot DMs clean results, keeps channels quiet, and the lookup coverage is honestly wild for a free service.</blockquote></article>
+        <article class="fb-card tilt"><div class="fb-head"><div class="fb-avatar">D</div><div><h3>Dev</h3><p>Student investigator</p></div></div><blockquote>I use it for quick checks before deeper manual research. It saves the boring first 20 minutes every time.</blockquote></article>
+        <article class="fb-card tilt"><div class="fb-head"><div class="fb-avatar">K</div><div><h3>K</h3><p>Server moderator</p></div></div><blockquote>The uptime and response speed are what sold me. Simple command in, useful report out.</blockquote></article>
+      </div>
+    </section>
+
+    <footer class="reveal">
+      <span>Analysis UI clone</span><span>·</span><span>single frontend file</span><span>·</span><a href="#about">Back to top</a>
+    </footer>
+  </main>
+
+  <script>
+    const root = document.documentElement;
+
+    window.addEventListener("pointermove", (event) => {
+      const x = event.clientX / window.innerWidth;
+      const y = event.clientY / window.innerHeight;
+      root.style.setProperty("--mx", `${event.clientX}px`);
+      root.style.setProperty("--my", `${event.clientY}px`);
+      root.style.setProperty("--rx", `${(0.5 - y) * 10}deg`);
+      root.style.setProperty("--ry", `${(x - 0.5) * 12}deg`);
+    }, { passive: true });
+
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.14, rootMargin: "0px 0px -8% 0px" });
+
+    document.querySelectorAll(".reveal").forEach((el, index) => {
+      el.style.transitionDelay = `${Math.min(index * 45, 240)}ms`;
+      revealObserver.observe(el);
+    });
+
+    document.querySelectorAll(".tilt").forEach((card) => {
+      card.addEventListener("pointermove", (event) => {
+        const rect = card.getBoundingClientRect();
+        const px = (event.clientX - rect.left) / rect.width;
+        const py = (event.clientY - rect.top) / rect.height;
+        const rx = (0.5 - py) * 9;
+        const ry = (px - 0.5) * 11;
+        card.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-3px)`;
+        card.style.setProperty("--hx", `${px * 100}%`);
+        card.style.setProperty("--hy", `${py * 100}%`);
+      }, { passive: true });
+      card.addEventListener("pointerleave", () => {
+        card.style.transform = "";
+      });
+    });
+
+    async function showReady() {
+      const input = document.getElementById("lookupInput");
+      const result = document.getElementById("resultCard");
+      const select = document.querySelector(".lookup-grid select");
+
+      const value = input.value.trim();
+
+      if (!value) {
+        result.innerHTML = `<div><span class="live-dot"></span>Error</div><p>Please enter a value.</p>`;
+        return;
+      }
+
+      let url = "";
+
+      switch (select.value) {
+        case "Number lookup":
+          url = `https://osint-bronx-ultra-2-0.onrender.com/api/key-bronx/number?key=op&num=${encodeURIComponent(value)}`;
+          break;
+        case "Vehicle lookup":
+          url = `https://osint-bronx-ultra-2-0.onrender.com/api/key-bronx/aadhar?key=op&num=${encodeURIComponent(value)}`;
+          break;
+        case "Telegram lookup":
+          url = `https://tg-ifo-babu-0.vercel.app/tracex?key=BRONXop&username=${encodeURIComponent(value)}`;
+          break;
+        case "UPI lookup":
+          url = `https://osint-bronx-ultra-2-0.onrender.com/api/key-bronx/upi?key=op&upi=${encodeURIComponent(value)}`;
+          break;
+      }
+
+      result.innerHTML = `<div><span class="live-dot"></span>Searching...</div><p>Please wait...</p>`;
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+let displayData = data;
+
+// Telegram API
+if (data.results) {
+    displayData = data.results;
+}
+
+// Recursively clean API metadata and rename id->penchoid
+function cleanObject(obj) {
+  if (!obj || typeof obj !== 'object') return obj;
+
+  const blocked = new Set([
+    'credit','developer','query_time_ms','status','username',
+    'expiry','expiration','expires','uses_left','remaining',
+    'api_key','key','plan','limit','requests_left',
+    'powered_by','api_info','key_owner','used','created'
+  ]);
+
+  for (const k of Object.keys(obj)) {
+    if (blocked.has(k)) {
+      delete obj[k];
+      continue;
+    }
+
+    if (k === 'id') {
+      obj.penchoid = obj[k];
+      delete obj.id;
+      continue;
+    }
+
+    if (typeof obj[k] === 'object') {
+      cleanObject(obj[k]);
+    }
+  }
+
+  return obj;
+}
+
+displayData = cleanObject(displayData);
+
+result.innerHTML = `
+<div><span class="live-dot"></span>Results</div>
+<pre style="
+white-space:pre-wrap;
+overflow:auto;
+color:#fff;
+margin:0;
+font-size:14px;
+line-height:1.6;
+">
+${escapeHtml(JSON.stringify(displayData, null, 2))}
+</pre>
+`;
+
+} catch (err) {
+  result.innerHTML = `
+    <div><span class="live-dot"></span>Error</div>
+    <p>${escapeHtml(err.message)}</p>
+  `;
+}
+}
+
+    const lookupInput = document.getElementById("lookupInput");
+    const lookupType = document.querySelector(".lookup-grid select");
+
+    lookupType.addEventListener("change", () => {
+      switch (lookupType.value) {
+        case "Number lookup":
+          lookupInput.placeholder = "Enter 10 digit number";
+          break;
+        case "Vehicle lookup":
+          lookupInput.placeholder = "Enter 12 digit Aadhaar";
+          break;
+        case "Telegram lookup":
+          lookupInput.placeholder = "Enter Telegram username";
+          break;
+        case "UPI lookup":
+          lookupInput.placeholder = "Enter UPI ID";
+          break;
+      }
+    });
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      }[char]));
+    }
+  </script>
+</body>
+</html>
