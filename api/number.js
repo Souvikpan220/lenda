@@ -18,9 +18,10 @@ export default async function handler(req, res) {
     `https://osint-bronx-ultra-2-0.onrender.com/api/key-bronx/number?key=op&num=${encodeURIComponent(query)}`
   );
 
-  const data = await response.json();
+  const text = await response.text();
+console.log(text);
 
-  return res.status(200).json(data);
+return res.status(response.status).send(text);
 
 } catch (err) {
   return res.status(500).json({
