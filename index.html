@@ -857,7 +857,29 @@
 </section>
 
 
-    <section class="about-section reveal">
+    <section class="section-block reveal" id="use-bot">
+      <div class="section-head">
+        <div class="section-kicker">Start Searching</div>
+        <h2>Use OSINT in your Browser without login.</h2>
+        <p>Pick a lookup type, enter your query, and get results - No Login Required.</p>
+      </div>
+      <div class="webbot-panel depth-card" id="lookup-card">
+        <div class="soon-tag">web bot preview</div>
+        <h3>Run an OSINT lookup</h3>
+        <p>Choose a lookup type, enter a public identifier, and later connect this form to your own logic.</p>
+        <form class="lookup-grid" onsubmit="event.preventDefault(); showReady();">
+          <label><span>Lookup type</span><select><option>Number lookup</option><option>Aadhar lookup</option><option>Telegram lookup</option><option>UPI lookup</option></select></label>
+          <label><span>Query</span><input id="lookupInput" placeholder="Enter Phone Number without +91"></label>
+          <button type="submit">Search</button>
+        </form>
+        <div class="result-card" id="resultCard">
+          <div><span class="live-dot"></span>Ready</div>
+          <p>Results will appear here after you add your lookup query.</p>
+        </div>
+      </div>
+    </section>
+
+<section class="about-section reveal">
       <div class="about-eyebrow"><span class="pill">01</span><span>The Concept</span></div>
       <h2 class="about-h2">What is <em>OSINT</em>?</h2>
       <p class="about-lead">OSINT stands for Open-Source Intelligence: collecting and connecting publicly available information from leaks, profiles, records, metadata, search engines, and other open sources.</p>
@@ -881,27 +903,7 @@
       </div>
     </section>
 
-    <section class="section-block reveal" id="use-bot">
-      <div class="section-head">
-        <div class="section-kicker">Use Bot</div>
-        <h2>Use OSINT in your Browser without login.</h2>
-        <p>Pick a lookup type, enter your query, and get results - No Login Required.</p>
-      </div>
-      <div class="webbot-panel depth-card" id="lookup-card">
-        <div class="soon-tag">web bot preview</div>
-        <h3>Run an OSINT lookup</h3>
-        <p>Choose a lookup type, enter a public identifier, and later connect this form to your own logic.</p>
-        <form class="lookup-grid" onsubmit="event.preventDefault(); showReady();">
-          <label><span>Lookup type</span><select><option>Number lookup</option><option>Aadhar lookup</option><option>Telegram lookup</option><option>UPI lookup</option></select></label>
-          <label><span>Query</span><input id="lookupInput" placeholder="Enter Phone Number without +91"></label>
-          <button type="submit">Search</button>
-        </form>
-        <div class="result-card" id="resultCard">
-          <div><span class="live-dot"></span>Ready</div>
-          <p>Results will appear here after you add your lookup query.</p>
-        </div>
-      </div>
-    </section>
+    
 
     <section class="section-block reveal" id="bot-stats">
       <div class="section-head">
