@@ -813,36 +813,32 @@
 @media(max-width:600px){.hero-image img{max-width:85vw;min-width:unset;margin-right:0}}
 
 
-/* Floating lookup cards around cyber girl */
-.lookup-float{
-position:absolute;
-padding:12px 18px;
-border:1px solid rgba(255,255,255,.12);
-border-radius:16px;
-background:rgba(15,15,25,.65);
-backdrop-filter:blur(16px);
-color:#fff;
-font-size:13px;
-font-weight:800;
-box-shadow:0 10px 30px rgba(0,0,0,.35);
-animation:floatCard 4s ease-in-out infinite;
-white-space:nowrap;
-}
-.float-number{top:8%;left:-10%;}
-.float-telegram{top:28%;right:-12%;animation-delay:.7s;}
-.float-upi{bottom:20%;left:-12%;animation-delay:1.2s;}
-.float-aadhar{bottom:5%;right:-10%;animation-delay:1.8s;}
 
-@keyframes floatCard{
-0%,100%{transform:translateY(0px);}
-50%{transform:translateY(-10px);}
+.lookup-float{
+  position:absolute;
+  z-index:10;
+  padding:8px 12px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.15);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  border-radius:14px;
+  color:#fff;
+  font-size:11px;
+  font-weight:700;
+  box-shadow:0 8px 30px rgba(0,0,0,.25), inset 0 1px 1px rgba(255,255,255,.15);
+  animation:floatGlass 4s ease-in-out infinite;
+  white-space:nowrap;
+}
+.float-number{top:18%;left:8%;}
+.float-telegram{top:34%;right:5%;animation-delay:.8s;}
+.float-upi{bottom:28%;left:4%;animation-delay:1.4s;}
+.float-aadhar{bottom:18%;right:6%;animation-delay:2s;}
+@keyframes floatGlass{
+  0%,100%{transform:translateY(0px);}
+  50%{transform:translateY(-6px);}
 }
 
-@media(max-width:900px){
-.lookup-float{
-font-size:11px;
-padding:10px 14px;
-}
 .float-number{left:0;}
 .float-telegram{right:0;}
 .float-upi{left:0;}
