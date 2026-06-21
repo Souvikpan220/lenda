@@ -812,6 +812,43 @@
 @media(max-width:900px){.hero-layout{flex-direction:column;text-align:center;gap:30px}.hero-content{text-align:center}.hero-image img{max-width:450px;margin-right:0}}
 @media(max-width:600px){.hero-image img{max-width:85vw;min-width:unset;margin-right:0}}
 
+
+/* Floating lookup cards around cyber girl */
+.lookup-float{
+position:absolute;
+padding:12px 18px;
+border:1px solid rgba(255,255,255,.12);
+border-radius:16px;
+background:rgba(15,15,25,.65);
+backdrop-filter:blur(16px);
+color:#fff;
+font-size:13px;
+font-weight:800;
+box-shadow:0 10px 30px rgba(0,0,0,.35);
+animation:floatCard 4s ease-in-out infinite;
+white-space:nowrap;
+}
+.float-number{top:8%;left:-10%;}
+.float-telegram{top:28%;right:-12%;animation-delay:.7s;}
+.float-upi{bottom:20%;left:-12%;animation-delay:1.2s;}
+.float-aadhar{bottom:5%;right:-10%;animation-delay:1.8s;}
+
+@keyframes floatCard{
+0%,100%{transform:translateY(0px);}
+50%{transform:translateY(-10px);}
+}
+
+@media(max-width:900px){
+.lookup-float{
+font-size:11px;
+padding:10px 14px;
+}
+.float-number{left:0;}
+.float-telegram{right:0;}
+.float-upi{left:0;}
+.float-aadhar{right:0;}
+}
+
 </style>
 </head>
 <body>
@@ -851,7 +888,14 @@
 </div>
 
 <div class="hero-image">
+
 <img src="girl.png" alt="Cyber Girl">
+
+<div class="lookup-float float-number">📱 Number Lookup</div>
+<div class="lookup-float float-telegram">✈️ Telegram Lookup</div>
+<div class="lookup-float float-upi">💳 UPI Lookup</div>
+<div class="lookup-float float-aadhar">🪪 Aadhaar Lookup</div>
+
 </div>
 </div>
 </section>
