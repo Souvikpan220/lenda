@@ -799,6 +799,16 @@
 #lookup-card{scroll-margin-top:80px}
 @media (max-width:768px){.hero-actions{flex-direction:column}.hero-btn{width:100%;max-width:320px}}
 
+
+/* CYBER GIRL HERO */
+.hero-layout{display:flex;align-items:center;justify-content:space-between;gap:60px;min-height:70vh}
+.hero-content{flex:1;max-width:650px;text-align:left}
+.hero-image{flex:0 0 420px;position:relative}
+.hero-image img{width:100%;height:auto;display:block;border-radius:24px;mix-blend-mode:screen;filter:drop-shadow(0 0 40px rgba(155,92,255,.5)) drop-shadow(0 0 80px rgba(92,200,255,.3));transform:perspective(1000px) rotateY(-8deg);animation:floatGirl 5s ease-in-out infinite}
+.hero-image::before{content:"";position:absolute;inset:-60px;z-index:-1;background:radial-gradient(circle,rgba(155,92,255,.35),transparent 70%);filter:blur(60px)}
+@keyframes floatGirl{0%,100%{transform:perspective(1000px) rotateY(-8deg) translateY(0)}50%{transform:perspective(1000px) rotateY(-8deg) translateY(-12px)}}
+@media(max-width:900px){.hero-layout{flex-direction:column;text-align:center;gap:30px}.hero-content{text-align:center}.hero-image{max-width:320px;flex:auto}}
+
 </style>
 </head>
 <body>
@@ -824,12 +834,25 @@
       <a href="#feedbacks"><span>Feedbacks</span></a>
     </nav>
 
-    <section class="hero reveal" id="about">
-      <div class="hero-badge"><span></span>#1 free osint on Web</div>
-      <h1>Open intelligence,<br><em>Open to everyone.</em></h1>
-      <p>OSINT Web Bot is a free bot built to make fast public-source lookups available without paywalls, gatekeeping, or noisy workflows.</p>
-<div class="hero-actions"><a href="#lookup-card" class="hero-btn"><span>Number Details Lookup</span></a><a href="#lookup-card" class="hero-btn"><span>Explore More</span></a></div>
-    </section>
+    
+<section class="hero reveal" id="about">
+<div class="hero-layout">
+<div class="hero-content">
+<div class="hero-badge"><span></span>#1 free osint on Web</div>
+<h1>Open intelligence,<br><em>Open to everyone.</em></h1>
+<p>OSINT Web Bot is a free bot built to make fast public-source lookups available without paywalls, gatekeeping, or noisy workflows.</p>
+<div class="hero-actions">
+<a href="#lookup-card" class="hero-btn"><span>Number Details Lookup</span></a>
+<a href="#lookup-card" class="hero-btn"><span>Explore More</span></a>
+</div>
+</div>
+
+<div class="hero-image">
+<img src="girl.png" alt="Cyber Girl">
+</div>
+</div>
+</section>
+
 
     <section class="about-section reveal">
       <div class="about-eyebrow"><span class="pill">01</span><span>The Concept</span></div>
